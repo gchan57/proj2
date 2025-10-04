@@ -45,7 +45,7 @@ const Navbar = () => {
                 <>
                   <Link 
                     to="/login?role=freelancer" 
-                    className="text-gray-600 hover:text-teal-500 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-teal-50 flex items-center space-x-1"
+                    className="bg-gradient-to-r from-cyan-500 to-teal-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:from-cyan-600 hover:to-teal-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                   >
                     <span>Become a Freelancer</span>
                   </Link>

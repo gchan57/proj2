@@ -88,7 +88,7 @@ const ClientDashboard = () => {
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
               <ul className="divide-y divide-gray-200">
                 {loading ? <p className="p-4 text-center">Loading orders...</p> : (
-                  orders.length > 0 ? orders.map(order => (
+                  orders.length > 0 ? orders.filter(order => order.gigId).map(order => (
                     <li key={order._id}>
                       <div className="px-4 py-4 sm:px-6">
                         <div className="flex items-center justify-between">

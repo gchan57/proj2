@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import GigCard from './GigCard';
 import GigForm from './GigForm';
-import { getGigs, deleteGig, getOrdersForUser } from '../api/index';
+import { getGigs, deleteGig, getOrdersForUser, updateOrderStatus } from '../api/index';
 import { PlusIcon } from '@heroicons/react/24/solid';
 import { Navigate } from 'react-router-dom';
 
@@ -58,6 +58,17 @@ const FreelancerDashboard = ({ showToast }) => {
     showToast('Gig created successfully!', 'success');
     fetchGigs();
   };
+  
+  const handleAcceptOrder = async (orderId) => {
+    try {
+      await updateOrderStatus(orderId, 'in-progress');
+      showToast('Order accepted!', 'success');
+      fetchOrders(); // Refetch orders to update the UI
+    } catch (error) {
+      console.error('Failed to accept order:', error);
+      showToast('Failed to accept order.', 'error');
+    }
+  };
 
   if (authLoading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -100,13 +111,31 @@ const FreelancerDashboard = ({ showToast }) => {
              <div className="bg-white shadow overflow-hidden sm:rounded-md">
               <ul className="divide-y divide-gray-200">
                 {loading ? <p className="p-4 text-center">Loading orders...</p> : (
-                  orders.length > 0 ? orders.map(order => (
+                  orders.length > 0 ? orders.filter(order => order.gigId).map(order => (
                     <li key={order._id}>
-                      <div className="px-4 py-4 sm:px-6">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-teal-600 truncate">{order.gigId.title}</p>
-                          <div className="ml-2 flex-shrink-0 flex"><p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{order.status}</p></div>
-                        </div>
+                      <div className="px-4 py-4 sm:px-6 flex items-center justify-between">
+                        <div>
+                           <p className="text-sm font-medium text-teal-600 truncate">{order.gigId.title}</p>
+                           <div className="mt-2 flex items-center text-sm text-gray-500">
+                             <p>Status: 
+                               <span className={`ml-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                 order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                 order.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
+                                 'bg-yellow-100 text-yellow-800'
+                               }`}>
+                                 {order.status}
+                               </span>
+                             </p>
+                           </div>
+                         </div>
+                         {order.status === 'pending' && (
+                           <button 
+                             onClick={() => handleAcceptOrder(order._id)}
+                             className="ml-4 px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                           >
+                             Accept
+                           </button>
+                         )}
                       </div>
                     </li>
                   )) : <p className="p-4 text-center">You have no incoming orders.</p>

@@ -53,3 +53,17 @@ export const createOrder = (orderData) => {
 export const getOrdersForUser = (userId) => {
   return fetch(`${API_URL}/orders/user/${userId}`).then(res => res.json());
 };
+
+// ADD THIS FUNCTION
+export const updateOrderStatus = (orderId, status) => {
+  return fetch(`${API_URL}/orders/${orderId}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  }).then(res => {
+    if (!res.ok) {
+      throw new Error('Failed to update order status');
+    }
+    return res.json();
+  });
+};
