@@ -26,7 +26,7 @@ const Welcome = () => {
           <div className="bg-white p-8 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
             <BriefcaseIcon className="h-12 w-12 mx-auto text-teal-500" />
             <h3 className="mt-4 text-2xl font-semibold text-gray-700">I'm a Freelancer</h3>
-            <p className="mt-2 text-gray-500">Offer your expert services and find exciting new work.</p>
+            <p className="mt-2 text-gray-500">Offer your services and find exciting new work.</p>
             <Link to="/login?role=freelancer" className="mt-6 inline-block bg-teal-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-teal-600 transition-colors">
               Find Work
             </Link>
