@@ -1,12 +1,12 @@
 import React from 'react';
 
-// Use the specific UPI ID provided by the user
+
 const FREELANCER_UPI_VPA = '6385330466@upi'; 
-const UPI_QR_CODE_PATH = '/upiqr.jpg'; // Assuming 'upiqr.png' is in your public folder
+const UPI_QR_CODE_PATH = '/upiqr.jpg'; 
 
 const PaymentModal = ({ gig, onClose }) => {
   
-  // Construct the UPI Deep Link content
+
   const upiLink = `upi://pay?pa=${FREELANCER_UPI_VPA}&pn=${encodeURIComponent(gig.freelancerId.username)}&mc=0000&tid=TXN${Date.now()}&am=${gig.price}&cu=INR&tn=${encodeURIComponent('GigHub Order: ' + gig.title)}`;
   
   return (
