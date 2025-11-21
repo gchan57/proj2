@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getGigById, createOrder } from '../api/index';
 import { useAuth } from '../context/AuthContext';
 import { StarIcon } from '@heroicons/react/24/solid';
+import PaymentModal from './PaymentModal'; // <-- Import new modal
 
 const API_BASE_URL = 'http://localhost:5001';
 
@@ -12,6 +13,8 @@ const GigDetail = ({ showToast }) => {
     const { user } = useAuth();
     const [gig, setGig] = useState(null);
     const [loading, setLoading] = useState(true);
+    // NEW STATE: Manage payment modal visibility
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false); 
 
     useEffect(() => {
         const fetchGig = async () => {
@@ -27,6 +30,7 @@ const GigDetail = ({ showToast }) => {
         fetchGig();
     }, [id]);
 
+    // MODIFIED FUNCTION: Creates the order first, then opens the informational payment modal
     const handleOrder = async () => {
         if (!user) {
             navigate('/login?role=client');
@@ -49,9 +53,9 @@ const GigDetail = ({ showToast }) => {
         };
 
         try {
-            await createOrder(orderData);
-            showToast('Order placed successfully!', 'success');
-            navigate('/client/dashboard');
+            await createOrder(orderData); // Order is created successfully
+            showToast('Order placed! Please complete UPI payment.', 'success');
+            setIsPaymentModalOpen(true); // Open payment modal for information
         } catch (error) {
             showToast('Failed to place order.', 'error');
         }
@@ -62,10 +66,11 @@ const GigDetail = ({ showToast }) => {
     
     const imageUrl = gig.imageUrl ? `${API_BASE_URL}${gig.imageUrl}` : `https://via.placeholder.com/1280x720.png?text=No+Image`;
     
-    // Logic to ensure rating is a number and display "New" if no reviews
     const displayRating = gig.rating > 0 ? gig.rating.toFixed(1) : 'New';
     const numReviewsText = gig.numReviews === 1 ? '1 review' : `${gig.numReviews} reviews`;
     const reviewsAvailable = gig.reviews && gig.reviews.length > 0;
+    
+    const isOwner = user && gig.freelancerId && user._id === gig.freelancerId._id;
 
     return (
         <div className="bg-white">
@@ -84,7 +89,6 @@ const GigDetail = ({ showToast }) => {
                             <div className="flex items-center">
                                 <div className="flex items-center">
                                     {[0, 1, 2, 3, 4].map((index) => (
-                                        // CRITICAL: Display stars based on gig.rating
                                         <StarIcon 
                                             key={index} 
                                             className={`h-5 w-5 flex-shrink-0 ${gig.rating > index ? 'text-yellow-400' : 'text-gray-300'}`} 
@@ -106,9 +110,13 @@ const GigDetail = ({ showToast }) => {
                         
                         <p className="text-3xl text-gray-900 mt-6">${gig.price}</p>
                         
-                        <button onClick={handleOrder} className="mt-10 w-full bg-teal-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-teal-700">
-                            Order Now
-                        </button>
+                        {!isOwner ? (
+                             <button onClick={handleOrder} className="mt-10 w-full bg-teal-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-teal-700">
+                                Order Now
+                             </button>
+                        ) : (
+                            <p className="mt-10 w-full text-center text-gray-500 text-lg font-medium">You are viewing your own gig.</p>
+                        )}
                     </div>
                 </div>
 
@@ -141,6 +149,13 @@ const GigDetail = ({ showToast }) => {
                     </div>
                 </div>
             </div>
+            {/* RENDER NEW PAYMENT MODAL */}
+            {isPaymentModalOpen && (
+                <PaymentModal 
+                    gig={gig} 
+                    onClose={() => setIsPaymentModalOpen(false)} 
+                />
+            )}
         </div>
     );
 };
