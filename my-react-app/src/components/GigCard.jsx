@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { StarIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { StarIcon, TrashIcon, PencilSquareIcon } from '@heroicons/react/24/solid'; // <-- Updated import
 
 const API_BASE_URL = 'http://localhost:5001';
 
-const GigCard = ({ gig, isOwner, onDelete }) => {
+const GigCard = ({ gig, isOwner, onDelete, onEdit }) => { // <-- Added onEdit to props
   const imageUrl = gig.imageUrl ? `${API_BASE_URL}${gig.imageUrl}` : `https://via.placeholder.com/400x300.png?text=No+Image`;
 
   return (
@@ -25,8 +25,14 @@ const GigCard = ({ gig, isOwner, onDelete }) => {
         </div>
       </Link>
       {isOwner && (
-        <div className="p-4 bg-gray-50 border-t">
-          <button onClick={() => onDelete(gig._id)} className="w-full flex items-center justify-center text-red-500 hover:text-red-700 text-sm font-medium">
+        <div className="p-4 bg-gray-50 border-t flex justify-between"> 
+          {/* EDIT BUTTON */}
+          <button onClick={() => onEdit(gig)} className="flex items-center text-blue-500 hover:text-blue-700 text-sm font-medium">
+            <PencilSquareIcon className="h-4 w-4 mr-1" />
+            Edit
+          </button>
+          {/* DELETE BUTTON */}
+          <button onClick={() => onDelete(gig._id)} className="flex items-center text-red-500 hover:text-red-700 text-sm font-medium">
             <TrashIcon className="h-4 w-4 mr-1" />
             Delete
           </button>

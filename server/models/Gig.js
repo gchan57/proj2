@@ -4,7 +4,7 @@ const ReviewSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     username: { type: String, required: true },
     rating: { type: Number, required: true },
-    comment: { type: String, required: true },
+    comment: { type: String, required: false }, // <-- CHANGE THIS LINE
 }, { timestamps: true });
 
 const GigSchema = new mongoose.Schema({

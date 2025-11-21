@@ -13,13 +13,14 @@ const FreelancerDashboard = ({ showToast }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [gigToEdit, setGigToEdit] = useState(null); 
 
   const fetchGigs = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
         const allGigs = await getGigs();
-        setGigs(allGigs.filter(gig => gig.freelancerId._id === user._id));
+        setGigs(allGigs.filter(gig => gig.freelancerId?._id === user._id));
     } catch(err) {
         console.error("Failed to fetch gigs:", err);
     } finally {
@@ -53,22 +54,50 @@ const FreelancerDashboard = ({ showToast }) => {
     }
   };
 
-  const handleFormSuccess = () => {
-    setIsModalOpen(false);
-    showToast('Gig created successfully!', 'success');
-    fetchGigs();
-  };
-  
   const handleAcceptOrder = async (orderId) => {
     try {
       await updateOrderStatus(orderId, 'in-progress');
-      showToast('Order accepted!', 'success');
-      fetchOrders(); // Refetch orders to update the UI
+      showToast('Order accepted! Work in progress.', 'success');
+      fetchOrders(); 
     } catch (error) {
       console.error('Failed to accept order:', error);
       showToast('Failed to accept order.', 'error');
     }
   };
+  
+  // NEW FUNCTION: Handles marking an order as 'completed'
+  const handleCompleteOrder = async (orderId) => {
+    try {
+      await updateOrderStatus(orderId, 'completed');
+      showToast('Order marked as completed!', 'success');
+      fetchOrders();
+    } catch (error) {
+      console.error('Failed to complete order:', error);
+      showToast('Failed to complete order.', 'error');
+    }
+  };
+
+  const handleOpenCreateModal = () => {
+    setGigToEdit(null); 
+    setIsModalOpen(true);
+  };
+  
+  const handleEdit = (gig) => {
+    setGigToEdit(gig); 
+    setIsModalOpen(true);
+  };
+  
+  const handleFormClose = () => {
+    setIsModalOpen(false);
+    setGigToEdit(null); 
+  };
+
+  const handleFormSuccess = (actionType = 'created') => {
+    handleFormClose();
+    showToast(`Gig ${actionType} successfully!`, 'success');
+    fetchGigs();
+  };
+
 
   if (authLoading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -83,7 +112,7 @@ const FreelancerDashboard = ({ showToast }) => {
             <p className="mt-2 text-gray-600">Manage your gigs and view incoming orders.</p>
           </div>
           {activeTab === 'gigs' && (
-            <button onClick={() => setIsModalOpen(true)} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700">
+            <button onClick={handleOpenCreateModal} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700">
               <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
               Create New Gig
             </button>
@@ -103,7 +132,7 @@ const FreelancerDashboard = ({ showToast }) => {
           {activeTab === 'gigs' && (
             loading ? <p className="text-center">Loading your gigs...</p> : (
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {gigs.length > 0 ? gigs.map(gig => <GigCard key={gig._id} gig={gig} isOwner={true} onDelete={handleDelete} />) : <p>You haven't created any gigs yet.</p>}
+                {gigs.length > 0 ? gigs.map(gig => <GigCard key={gig._id} gig={gig} isOwner={true} onDelete={handleDelete} onEdit={handleEdit} />) : <p>You haven't created any gigs yet.</p>}
               </div>
             )
           )}
@@ -128,14 +157,25 @@ const FreelancerDashboard = ({ showToast }) => {
                              </p>
                            </div>
                          </div>
-                         {order.status === 'pending' && (
-                           <button 
-                             onClick={() => handleAcceptOrder(order._id)}
-                             className="ml-4 px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                           >
-                             Accept
-                           </button>
-                         )}
+                         <div className="flex space-x-2">
+                            {order.status === 'pending' && (
+                              <button 
+                                onClick={() => handleAcceptOrder(order._id)}
+                                className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                              >
+                                Accept
+                              </button>
+                            )}
+                            {/* NEW BUTTON: Done button for in-progress orders */}
+                            {order.status === 'in-progress' && (
+                              <button 
+                                onClick={() => handleCompleteOrder(order._id)}
+                                className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                              >
+                                Done
+                              </button>
+                            )}
+                         </div>
                       </div>
                     </li>
                   )) : <p className="p-4 text-center">You have no incoming orders.</p>
@@ -145,7 +185,7 @@ const FreelancerDashboard = ({ showToast }) => {
           )}
         </div>
       </div>
-      {isModalOpen && <GigForm user={user} onClose={() => setIsModalOpen(false)} onSuccess={handleFormSuccess} />}
+      {isModalOpen && <GigForm user={user} gigToEdit={gigToEdit} onClose={handleFormClose} onSuccess={handleFormSuccess} />}
     </>
   );
 };
